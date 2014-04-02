@@ -1,0 +1,96 @@
+<!doctype html>
+<html ng-app="myApp">
+<head>
+    <meta charset="utf-8">
+    <title>GeneCompare</title>
+    <!-- <link rel="stylesheet" type="text/css" href="css/style.css"> -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    
+
+
+    <link href="css/style.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js" type="text/javascript"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="myApp.js" type="text/javascript"></script>
+
+</head>
+<body ng-controller="appController">
+    <!--<script src="../build/app.bundle.js"></script>-->
+
+    <script>
+        // require('GeneCompare')({});
+    </script>
+
+
+<div>
+
+    <div class="alert alert-info" ng-show="loading">Loading</div>
+
+    <!-- Search Box -->
+    <form class="navbar-form" role="search">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search" name="srch-term" id="srch-term">
+            <div class="input-group-btn">
+                <button class="btn btn-default" type="submit" ng-click="hasResults = true"><span class="glyphicon glyphicon-search"></span></button>
+            </div>
+        </div>
+    </form>
+
+
+    <div class="row" ng-controller="controller">
+
+        <p>Click <a ng-click="hideLoading()">here</a> to load data.</p>
+
+        <div class="col-xs-4">
+
+            <!-- Results Panel -->
+            <div class="panel panel-default">
+                <div class="panel-heading">Results</div>
+                <div class="panel-body" ng-show="!hasResults">(Enter a search term for results.)</div>
+                <div class="panel-body" ng-show="hasResults">
+
+                        <p>Click <a ng-click="loadPeople()">here</a> to load data.</p>
+                        <table class="table table-striped">
+                            <thead>
+                                <th>Gene</th>
+                                <th>Similarity Score</th>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="(key, item) in testData | orderObjectBy:orderByAttribute"><td data-toggle="tooltip" data-placement="top" title="Tooltip on top">{{item.name}}</td><td>{{item.score}}</td></tr>
+                            </tbody>
+                        </table>
+
+                </div>
+            </div>
+
+        </div>
+
+
+
+        <div class="col-xs-8">
+
+
+            <!-- Results Panel -->
+            <div class="panel panel-default">
+                <div class="panel-heading">Details</div>
+                <div class="panel-body" ng-show="!hasResults">(Enter a search term for results.)</div>
+                <div class="panel-body" ng-show="hasResults">
+
+                        {{stringed}}
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+</body>
+</html>
