@@ -1,4 +1,24 @@
-var myApp = angular.module('myApp', []);
+angular.module('myApp.services', []).
+    factory('Mine', function ($q) {
+        return new intermine.Service({root: 'www.flymine.org/query'});        
+    }).
+    service('Activities', function($http, $q) {
+        this.get = function(from, to){
+            var deferred = $q.defer();
+            var url = 'user/activities?from='+from+'&to='+to;
+            $http.get(url).success(function(data, status) {
+                // Some extra manipulation on data if you want...
+                deferred.resolve(data);
+            }).error(function(data, status) {
+                deferred.reject(data);
+            });
+
+            return deferred.promise;
+        }
+    }
+);
+
+var myApp = angular.module('myApp', ['myApp.services']);
 
 myApp.filter('orderObjectBy', function(){
  return function(input, attribute) {
@@ -18,57 +38,78 @@ myApp.filter('orderObjectBy', function(){
  }
 });
 
-myApp.service('Photo', ['$log', function ($log) {
-
-    var flymine   = new intermine.Service({root: 'www.flymine.org/query'});
-
-    oids = [19071979, 19071980, 19071987];
-
-
-
-
-    function getQuery(root, ids) {
-        var query = {
-        "from": root,
-        "select":["*"],
-        "where":
-                        [
-                            {"path":root,"op":"IN","ids":ids.slice()}
-                        ]
-                }
-        return query;
-    }
-
-    var types = ['Gene', 'ProteinDomain'];
-    for (i in types) {
-        var q = getQuery(types[i], oids);
-
-        flymine.records(q).then(function(rows) {
-            console.log("rows", rows);
-          console.log("No. of exons: " + rows.length);
-          rows.forEach(function printRow(row) {
-            console.log("[" + row[0] + "] " + row[1] + ":" + row[2] + ".." + row[3]);
-          });
-        });
-    }
-
-    return {};
-
-}]);
-
-
-
-
 myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     $scope.orderByAttribute = '';
 
 
-}]).controller('appController', ['$scope', '$http', 'Photo', function ($scope, $http, Photo) {
+}]).controller('appController', function ($scope, $http, $q, $log, $timeout, Mine) {
 
+    $scope.commonItems = {commonitems: []};
+    $scope.imObjects = [];
 
     $scope.$on('LOAD',function(){$scope.loading=true});
     $scope.$on('UNLOAD',function(){$scope.loading=false});
+
+    var flymine = Mine
+    // oids = [19071979, 19071980, 19071987];
+      , oids = [19012567, 19071979, 19071980, 19071987, 19072022, 86000919, 35000020, 35000003, 86000156, 86000153, 86000160, 86000157, 86000178, 86000161, 86000268, 86000190, 86000271, 86000269, 86000272, 86000273, 86000275, 86000277, 86000278, 86000407, 86000409, 86000414, 86000557, 86000575, 86000659, 86000890, 86000902, 86000906, 86000907, 86000916, 86000505, 86000191];
+
+    $scope.convertObjs = function() {
+
+        // var types = ['ProteinDomain'];
+        // var promises = new Array();
+
+        //////////////////
+
+        if (!$scope.commonItems) return;
+        $log.info("Making request");
+        //var q = getQuery('ProteinDomain', $scope.commonItems.commonitems),
+        var q = getQuery('ProteinDomain', oids);
+        flymine.records(q).then(function (rs) {
+            $scope.imObjects = rs;
+            $scope.$apply();
+        });
+
+    };
+
+    function success(data) {
+
+       masterArray = new Array();
+        for (var i = 0; i < data.length; i++) {
+            var nextDataSet = data[i];
+            for (x = 0; x < nextDataSet.length; x++) {
+                masterArray.push(nextDataSet[x]);
+            }
+        }
+        $scope.finalResults = masterArray;
+        $scope.commonItems = masterArray;
+    };
+        
+
+    // for (var i = 0; i < 5; i++) {
+    //     $scope.imObjects.push("test");
+    // }
+
+
+
+    function getQuery(root, ids) {
+
+        var query = {
+        "from": root,
+        "select":["*"],
+        "where":
+            [
+                {"path":root,"op":"IN","ids":ids.slice()}
+            ]
+        }
+        return query;
+    }
+
+
+
+
+
 
 
     $scope.getSimilarGenes = function(gene) {
@@ -86,10 +127,8 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
             }
         }
 
-
         $http.get("testdata/mostsimilar.json", config, {}).success(function (data) {
 
-            console.log("FINISHED", data);
             $scope.testData = data
             $scope.$emit("UNLOAD");
         });
@@ -109,18 +148,42 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
         $http.get("testdata/commonitems.json", config, {}).success(function (data) {
 
-            console.log("FINISHED", value);
-            $scope.$emit("UNLOAD");
+            // Now convert out list of IDs to items:
             $scope.commonItems = data[value];
-            console.log("CommonItems: " + JSON.stringify($scope.commonItems, null, 2));
+
+            //var all = convertObjs(data[value]);
+           // all.then(success)
+
+            // Show our array of promises:
+            //console.log("everything", conversionPromise);
+
+
+
+            // $q.when(conversionPromise).then(function(values){soundoff()});
+
+            $scope.$emit("UNLOAD");
+
         });
 
     };
 
+
+    
+
+
+
+
     $scope.hideLoading = function() {
-        console.log("CLICKLED");
         $scope.$emit("UNLOAD");
     };
 
+    $scope.soundoff = function() {
+        alert("soundoff");
+    };
+
+
+
     
-}]);
+});
+
+

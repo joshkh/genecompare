@@ -43,12 +43,12 @@
     <div class="row" ng-controller="controller">
 
 
-        <div class="col-xs-2">
+        <div class="col-xs-3">
 
             <!-- Results Panel -->
             <div class="panel panel-success">
                 <div class="panel-heading">Search Results</div>
-                <div class="panel-body" ng-show="!testData">(Enter a search term for results.)</div>
+                <div class="panel-body" ng-show="testData">(Enter a search term for results.)</div>
                 <div class="panel-body" ng-show="testData">
 
                         <table class="table table-striped">
@@ -69,12 +69,12 @@
 
 
 
-        <div class="col-xs-5">
+        <div class="col-xs-3">
 
             <!-- Results Panel -->
             <div class="panel panel-success">
                 <div class="panel-heading">Similar Genes</div>
-                <div class="panel-body" ng-show="!testData">(Enter a search term for results.)</div>
+                <div class="panel-body" ng-show="testData">(Enter a search term for results.)</div>
                 <div class="panel-body" ng-show="testData">
                         <table class="table table-striped">
                             <thead>
@@ -95,7 +95,7 @@
 
 
 
-        <div class="col-xs-5">
+        <div class="col-xs-3">
 
 
             <!-- Results Panel -->
@@ -118,6 +118,37 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- tttttttttttttttt -->
+
+        <div class="col-xs-3">
+
+
+            <!-- Results Panel -->
+            <div class="panel panel-success">
+                <div class="panel-heading" ng-click="convertObjs()">InterMine Objects</div>
+                <div class="panel-body" ng-show="!commonItems">(Enter a search term for results.)</div>
+                <div class="panel-body">
+
+
+                Any: <input ng-model="search.$"> <br>
+
+                    <table class="table table-striped">
+                        <thead>
+                            <th>Class</th>
+                            <th>Name</th>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="test in imObjects | filter:search">
+                                <td>{{test.class}}</td>
+                                <td>{{test.name}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
         </div>
 
     </div>
