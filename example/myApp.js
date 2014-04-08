@@ -27,6 +27,47 @@ factory('_', function() {
 
 var myApp = angular.module('myApp', ['myApp.services', 'myApp.modules']);
 
+myApp.directive('donutChart', function() {
+    function link(scope, el) {
+
+        var dataset = {
+          apples: [53245, 28479, 19697, 24037, 40245],
+        };
+
+        var el = el[0]
+
+        var width = el.clientWidth;
+        var height = el.clientHeight;
+        var radius = (width, height) / 2;
+
+        var color = d3.scale.category20();
+
+        var pie = d3.layout.pie()
+            .sort(null);
+
+        var arc = d3.svg.arc()
+            .innerRadius(radius - 100)
+            .outerRadius(radius - 50);
+
+        var svg = d3.select(el).append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        var path = svg.selectAll("path")
+            .data(pie(dataset.apples))
+          .enter().append("path")
+            .attr("fill", function(d, i) { return color(i); })
+            .attr("d", arc);
+
+    }
+    return {
+        link: link,
+        restrict: 'E'
+    }
+})
+
 myApp.filter('orderObjectBy', function(){
  return function(input, attribute) {
     if (!angular.isObject(input)) return input;
@@ -112,6 +153,125 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
         return deferred.promise;
 
     };
+
+
+
+
+
+
+    buildMap = function(results, scopeVariable) {
+
+   //      {
+   // "1025450":{
+   //    "score:":25,
+   //    "commonitems":{
+   //       "1005555":[
+   //          35000010
+   //       ],
+   //       "1010602":[
+   //          19001462,
+   //          19001463,
+   //          19001464,
+   //          35000011,
+   //          35000010
+   //       ],
+   //       "1025450":[
+   //          19001464,
+   //          19001463,
+   //          19001462,
+   //          35000011,
+   //          35000010
+   //       ]
+
+        var allObjIds = [];
+      
+
+        console.log("buildMap called with", results);
+
+        for (var key in results) {
+
+            console.log("working on key", key);
+
+            // First push our key
+            allObjIds.push(parseInt(key));
+
+            // Now walk through the key(similar gene)'s common items and get those ids
+            var nextSimilarGene = results[key];
+            console.log("nextSimilarGene", nextSimilarGene);
+
+            for (var commonKey in nextSimilarGene.commonitems) {
+
+                console.log("working on commonKey", commonKey);
+
+                allObjIds.push(parseInt(commonKey));
+
+                arrValue = nextSimilarGene.commonitems[commonKey];
+                for (var x = 0; x < arrValue.length; x++) {
+                    allObjIds.push(arrValue[x]);
+                }
+                
+
+                // Now loop through the similar items
+
+            }
+            
+        }
+
+        console.log("final results", allObjIds);
+
+        var uniqueObjIds = _.uniq(allObjIds);
+
+        console.log("unique", uniqueObjIds);
+
+
+
+
+
+        var types = ['ProteinDomain', 'Pathway'];
+        // var promises = new Array();
+
+        //////////////////
+        var deferred = $q.defer();
+
+        var arrPromise = [];
+
+        for (type in types) {
+            var q = getQuery(types[type], results);
+            var nextPromise = convertOneSet(results, types[type]);
+            arrPromise.push(nextPromise);
+
+        }
+
+        $q.all(arrPromise).then(function(all) {
+
+            var emptyArray = [];
+
+            for (var i = 0; i < all.length; i++) {
+                emptyArray = emptyArray.concat(all[i]);
+
+            }
+
+            deferred.resolve(emptyArray);
+
+        });
+
+       // // if (!$scope.commonItems) return;
+       //  $log.info("Making request in convertOjbs");
+       //  //var q = getQuery('ProteinDomain', $scope.commonItems.commonitems),
+       //  var q = getQuery('Pathway', ids);
+       //  flymine.records(q).then(function (rs) {
+
+       //      console.log("RS: ", rs);
+       //     // $scope.imObjects = rs;
+       //     deferred.resolve(rs);
+       //      $scope.$apply();
+       //      return rs;
+       //  });
+
+        return deferred.promise;
+
+    };
+
 
     $scope.talk = function(test) {
         $scope.filterItem = test;
@@ -220,6 +380,19 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
         return query;
     }
 
+    function getQuery(root, ids) {
+
+        var query = {
+        "from": root,
+        "select":["*"],
+        "where":
+            [
+                {"path":root,"op":"IN","ids":ids.slice()}
+            ]
+        }
+        return query;
+    }
+
 
 
 
@@ -244,11 +417,15 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
         $http.get("testdata/mostsimilar.json", config, {}).success(function (data) {
 
+            console.log("found data", data);
+
             ids = [];
 
             for (item in data) {
                ids.push(data[item].name);
             }
+
+            console.log("using gene list ", ids);
 
             // Get a promise to resolve our genes as InterMine Objects
             var rs = getGeneInfo(ids, "commonGenes");
@@ -280,6 +457,8 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
         $scope.$emit("LOAD");
 
+        console.log("value", value);
+
         var config = {
             params: {
                 'callback': "json_callback"
@@ -291,29 +470,41 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
             // Now convert out list of IDs to items:
 
-            var commmonItems2 = data[value];
+            // {
+            // "1025450": {
+            //     "1005555": [35000010],
+            //     "1010602": [19001462, 19001463, 19001464, 35000011, 35000010],
+            //     "1025450": [19001464, 19001463, 19001462, 35000011, 35000010]
+            //     }
+            // }
 
-            if(!commmonItems2) {
+            // var commmonItems2 = data[value];
 
-                $scope.selectedCommonGene = _.findWhere($scope.commonGenes, {"objectId": parseInt(value)});
-                console.log("selectedCommonGene", $scope.selectedCommonGene);
+            // console.log("commonitems", commmonItems2);
 
+            // if(!commmonItems2) {
 
-                $scope.commonItems = null;
-                $scope.$emit("UNLOAD");
-                return;
-            }
-
-            ids = [];
+            //     $scope.selectedCommonGene = _.findWhere($scope.commonGenes, {"objectId": parseInt(value)});
+            //     console.log("selectedCommonGene", $scope.selectedCommonGene);
 
 
-            for (item in commmonItems2.commonitems) {
-                var nextItem = commmonItems2.commonitems[item];
-                ids.push(nextItem);
-            }
+            //     $scope.commonItems = null;
+            //     $scope.$emit("UNLOAD");
+            //     return;
+            // }
+
+            // ids = [];
+
+
+            // for (item in commmonItems2.commonitems) {
+            //     var nextItem = commmonItems2.commonitems[item];
+            //     ids.push(nextItem);
+            // }
+
+            // console.log("DATA", data);
             
 
-            var rs = convertObjs(ids, "testiong");
+            var rs = buildMap(data, "testiong");
 
             $q.when(rs).then(
                 function(values){

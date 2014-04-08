@@ -6,6 +6,9 @@
 
 body {
     background: #333;
+    margin: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .alert {
@@ -50,4 +53,32 @@ body {
 
 .stressed {
     font-weight: bold;
+}
+
+
+
+
+.chart {
+
+}
+
+.main text {
+    font: 10px sans-serif;  
+}
+
+.axis line, .axis path {
+    shape-rendering: crispEdges;
+    stroke: black;
+    fill: none;
+}
+
+circle {
+    fill: steelblue;
+}
+
+donut-chart {
+    background-color: blue;
+    width: 100%;
+    height: 100%;
+    display: block;
 }
