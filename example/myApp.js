@@ -18,6 +18,20 @@ angular.module('myApp.services', []).
     }
 );
 
+
+
+angular.module('myApp.myFilters', []).filter('object2Array', function() {
+    return function(input) {
+      var out = []; 
+      for(i in input){
+        out.push(input[i]);
+      }
+      return out;
+    }
+ });
+
+
+
 angular.module('myApp.modules', []).
 factory('_', function() {
     return window._; // assumes underscore has already been loaded on the page
@@ -25,7 +39,7 @@ factory('_', function() {
 
 
 
-var myApp = angular.module('myApp', ['myApp.services', 'myApp.modules']);
+var myApp = angular.module('myApp', ['myApp.services', 'myApp.modules', 'myApp.myFilters']);
 
 myApp.directive('donutChart', function() {
     function link(scope, el) {
@@ -98,7 +112,7 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
     // $scope.commonItems = {commonitems: []};
 
     $scope.imObjects = [];
-    
+    $scope.orgSearch;
 
     $scope.$on('LOAD',function(){$scope.loading=true});
     $scope.$on('UNLOAD',function(){$scope.loading=false});
@@ -137,6 +151,8 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
         });
 
+
+
        // // if (!$scope.commonItems) return;
        //  $log.info("Making request in convertOjbs");
        //  //var q = getQuery('ProteinDomain', $scope.commonItems.commonitems),
@@ -154,12 +170,26 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     };
 
+    $scope.setCommonGene = function(item) {
+
+        $scope.common = item;
+        var split = _.findWhere($scope.resolvedResultsArr, {objectId: item});
+        $scope.commonItems = split.commonitems;
+        console.log("splitcommonitems", $scope.commonItems);
+    };
+
+    $scope.fetchMap = function(id) {
+        alert($scope.dataMap[id]);
+        return $scope.dataMap[id];
+
+    };
 
 
 
 
 
-    buildMap = function(results, scopeVariable) {
+
+    buildMap = function(results) {
 
    //      {
    // "1025450":{
@@ -188,20 +218,21 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
         console.log("buildMap called with", results);
 
+        // Get all of the unique Object IDs from our results:
         for (var key in results) {
 
-            console.log("working on key", key);
+          
 
             // First push our key
             allObjIds.push(parseInt(key));
 
             // Now walk through the key(similar gene)'s common items and get those ids
             var nextSimilarGene = results[key];
-            console.log("nextSimilarGene", nextSimilarGene);
+
 
             for (var commonKey in nextSimilarGene.commonitems) {
 
-                console.log("working on commonKey", commonKey);
+
 
                 allObjIds.push(parseInt(commonKey));
 
@@ -209,25 +240,21 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
                 for (var x = 0; x < arrValue.length; x++) {
                     allObjIds.push(arrValue[x]);
                 }
-                
-
-                // Now loop through the similar items
 
             }
             
         }
 
-        console.log("final results", allObjIds);
+
+
+        for (item in $scope.orgSearch) {
+            allObjIds.push($scope.orgSearch[item]);
+        }
 
         var uniqueObjIds = _.uniq(allObjIds);
 
-        console.log("unique", uniqueObjIds);
 
-
-
-
-
-        var types = ['ProteinDomain', 'Pathway'];
+        var types = ['ProteinDomain', 'Pathway', 'Gene'];
         // var promises = new Array();
 
         //////////////////
@@ -236,8 +263,8 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
         var arrPromise = [];
 
         for (type in types) {
-            var q = getQuery(types[type], results);
-            var nextPromise = convertOneSet(results, types[type]);
+            var q = getQuery(types[type], uniqueObjIds);
+            var nextPromise = convertOneSet(uniqueObjIds, types[type]);
             arrPromise.push(nextPromise);
 
         }
@@ -251,22 +278,24 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
             }
 
-            deferred.resolve(emptyArray);
+
+
+            
+
+            // Now build our our objectmap:
+
+            var geneMap = {};
+
+            for (item in emptyArray) {
+                var nextItem = emptyArray[item];
+                var id = nextItem.objectId;
+                geneMap[id] = nextItem;
+
+            }
+
+            deferred.resolve(geneMap);
 
         });
-
-       // // if (!$scope.commonItems) return;
-       //  $log.info("Making request in convertOjbs");
-       //  //var q = getQuery('ProteinDomain', $scope.commonItems.commonitems),
-       //  var q = getQuery('Pathway', ids);
-       //  flymine.records(q).then(function (rs) {
-
-       //      console.log("RS: ", rs);
-       //     // $scope.imObjects = rs;
-       //     deferred.resolve(rs);
-       //      $scope.$apply();
-       //      return rs;
-       //  });
 
         return deferred.promise;
 
@@ -288,7 +317,7 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
         var q = getQuery(scopeVariable, ids);
         flymine.records(q).then(function (rs) {
 
-            console.log("RS: ", rs);
+
            // $scope.imObjects = rs;
            deferred.resolve(rs);
             $scope.$apply();
@@ -402,7 +431,9 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
     $scope.getSimilarGenes = function(gene) {
 
         //gene = gene.replace(/^\s+|\s+$/g,"").split(/\s*,\s*/);
-        var gene =["abd-A", "ade3", "Anp"];
+        gene =["Act88F","ade3","Arr2","ap","CG2650","Dll"];
+        //var gene =["Act88F"];
+        $scope.getCommonItems();
 
 
         $scope.$emit("LOAD");
@@ -417,7 +448,7 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
         $http.get("testdata/mostsimilar.json", config, {}).success(function (data) {
 
-            console.log("found data", data);
+
 
             ids = [];
 
@@ -453,11 +484,13 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     };
 
-    $scope.getCommonItems = function(value) {
+    $scope.getCommonItems = function() {
+
+
 
         $scope.$emit("LOAD");
 
-        console.log("value", value);
+        //console.log("getCommonItems called with ", searchValue);
 
         var config = {
             params: {
@@ -466,7 +499,7 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
         }
 
 
-        $http.get("testdata/commonitems.json", config, {}).success(function (data) {
+        $http.get("testdata/commonitems.json", config, {}).success(function (rawResults) {
 
             // Now convert out list of IDs to items:
 
@@ -502,14 +535,88 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
             // }
 
             // console.log("DATA", data);
+
+             var search = [1010602,1095690,1005555,1005289,1503950,1032942];
+            $scope.orgSearch = search;
             
 
-            var rs = buildMap(data, "testiong");
+            var rs = buildMap(rawResults);
+
+            // Now that we have our data map
+
+            // We will need this to map our data.
 
             $q.when(rs).then(
-                function(values){
+                function(dataMap){
 
-                    console.log("VALUES: ", values);
+                    console.log("dataMap: ", dataMap);
+                    $scope.dataMap = dataMap;
+                    // console.log("rawResults:", rawResults);
+
+                    //["Act88F","ade3","Arr2","ap","CG2650","Dll"];
+                   
+
+
+                    $scope.searchTerms = [];
+
+                    for (item in search) {
+
+                        $scope.searchTerms.push(dataMap[search[item]]);
+                    }
+
+
+
+                    
+
+                    // Set up our search terms for DEMO
+                    // Restructure our rawResults using our dataMap
+                    for (item in rawResults) {
+
+                        nextResult = rawResults[item];
+                        var mapped = dataMap[item];
+                        // console.log("MAPPED", mapped); 
+                        // Extend this property with the data from the dataMap
+                        _.extend(nextResult, mapped);
+
+                        // Now do our common items
+                        for (commonItem in nextResult.commonitems) {
+
+                            //console.log("COMMON ITEM", commonItem);
+                            var foundMap = dataMap[commonItem];
+                            //console.log("foundMap", foundMap);
+
+                            //_.extend(nextResult.commonitems[commonItem], dataMap[commonItem]);
+
+                            // convert our arrays to objects
+
+                            var tempArray = [];
+
+                            for (var i = 0; i < nextResult.commonitems[commonItem].length; i++) {
+                                //console.log("anItem", nextResult.commonitems[commonItem][i]);
+                                tempArray.push(dataMap[nextResult.commonitems[commonItem][i]]);
+                            }
+
+                            nextResult.commonitems[commonItem] = tempArray;
+
+
+
+                            // Now walk through each array in the common items
+                        }
+                    }
+
+                    console.log("finalResults:", rawResults);
+
+                    $scope.resolvedResultsArr = [];
+
+                    $scope.resolvedResults = rawResults;
+
+                    for ( item in rawResults) {
+                        $scope.resolvedResultsArr.push(rawResults[item]);
+                    }
+
+                    console.log("resolvedResultsArr: ", $scope.resolvedResultsArr);
+
+
                     // Re attach the score to the objects
                     // for (nextResult in values) {
 
@@ -519,21 +626,26 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
                     // }
 
                     // Pluck our classes:
-                    var classes = _.pluck(values, 'class');
+                    var classes = _.pluck(dataMap, 'class');
                     var uniqueClasses = _.uniq(classes);
 
-                    $scope.countBy = _.countBy(values, function(item) {
+                    $scope.countBy = _.countBy(dataMap, function(item) {
                         return item.class;
                     });
 
 
                     $scope.filterItem = "";
-                    $scope.commonItems = values;
+                    $scope.commonItems = dataMap;
 
-                    console.log("similar genes", $scope.commonGenes)
+                    //$scope.commonItems = values
 
-                    $scope.selectedCommonGene = _.findWhere($scope.commonGenes, {"objectId": parseInt(value)});
-                    console.log("selectedCommonGene", $scope.selectedCommonGene);
+                    //var foundValue = rawResults[searchValue];
+                    //console.log("foundValue", foundValue);
+
+                    //console.log("similar genes", $scope.commonGenes)
+
+                    //$scope.selectedCommonGene = _.findWhere($scope.commonGenes, {"objectId": parseInt(searchValue)});
+                    //console.log("selectedCommonGene", $scope.selectedCommonGene);
 
                 }
 
@@ -555,6 +667,11 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
         });
 
     };
+
+
+
+
+
 
 
     
