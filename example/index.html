@@ -31,6 +31,8 @@
 
 <div>
 
+
+
     <div class="alert alert-info" ng-show="loading">Loading</div>
 
     <!-- Search Box -->
@@ -68,6 +70,15 @@
                                 </tr>
                             </tbody>
                         </table>
+<!-- 
+                        <div ng-repeat="item in searchTerms" class="geneTile">
+
+                            <div class="geneTileContents">
+                                <div class="title">{{item.symbol}}</div>
+                                <div class="subtext">{{item.primaryIdentifier}}</div>
+
+                            </div>
+                        </div> -->
 
                 </div>
             </div>
@@ -77,6 +88,58 @@
 
 
 
+
+        
+
+
+
+        <div class="col-xs-6">
+
+
+            <!-- Results Panel -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">Common Items for <span class="stressed">{{common}}</span> ({{selectedCommonGene.primaryIdentifier}})</div>
+                
+                <div class="panel-body" ng-show="!commonItems">(Enter a search term for results.)</div>
+                <div class="panel-body" ng-show="commonItems">
+
+                <network-chart></network-chart>
+
+
+                    <ul class="nav nav-pills">
+                      <li class="active" ng-click="clearFilter()" ng-class="{active: $index == 0}"><a href="#tab{{$index + 1}}" data-toggle="tab">All ({{commonItems.length}})</a></li>
+                      <li ng-repeat="(key, value) in countBy" ng-click="talk(key)" ><a href="#tab{{$index + 1}}" data-toggle="tab">{{key}} ({{value}})</a></li>
+                    </ul>
+
+                    <input type="text" ng-model="testing">
+
+                    <div ng-repeat="(key, value) in commonItems">
+
+                        <h3>{{key}}</h3>
+
+                        <table class="table table-striped">
+                            <thead>
+                                <th>Type</th>
+                                <th>item</th>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="item in value" >
+                                    <td><a href="#">{{item.name}}</a></td><td><a href="#">{{item.class}}</a></td>
+                                    <td>
+<!--                                     <ul>
+                                        <li ng-repeat="value in item">{{item}}</li>
+                                    </ul> -->
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
 
         <div class="col-xs-3">
 
@@ -98,48 +161,6 @@
                                 </tr>
                             </tbody>
                         </table>
-
-                </div>
-            </div>
-
-        </div>
-
-
-
-        <div class="col-xs-6">
-
-
-            <!-- Results Panel -->
-            <div class="panel panel-primary">
-                <div class="panel-heading">Common Items for <span class="stressed">{{common}}</span> ({{selectedCommonGene.primaryIdentifier}})</div>
-                <!-- <donut-chart></donut-chart> -->
-                <div class="panel-body" ng-show="!commonItems">(Enter a search term for results.)</div>
-                <div class="panel-body" ng-show="commonItems">
-
-
-                    <ul class="nav nav-pills">
-                      <li class="active" ng-click="clearFilter()" ng-class="{active: $index == 0}"><a href="#tab{{$index + 1}}" data-toggle="tab">All ({{commonItems.length}})</a></li>
-                      <li ng-repeat="(key, value) in countBy" ng-click="talk(key)" ><a href="#tab{{$index + 1}}" data-toggle="tab">{{key}} ({{value}})</a></li>
-                    </ul>
-
-                    <input type="text" ng-model="testing">
-
-                    <table class="table table-striped">
-                        <thead>
-                            <th>Type</th>
-                            <th>item</th>
-                        </thead>
-                        <tbody>
-                            <tr ng-repeat="(fetchMap(key), item) in commonItems" >
-                                <td><a href="#">{{key}}</a></td>
-                                <td>
-                                <ul>
-                                    <li ng-repeat="value in item">{{value.name}}</li>
-                                </ul>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
 
                 </div>
             </div>

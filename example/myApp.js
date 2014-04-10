@@ -80,7 +80,184 @@ myApp.directive('donutChart', function() {
         link: link,
         restrict: 'E'
     }
-})
+});
+
+
+myApp.directive('networkChart', function() {
+    function link(scope, el) {
+
+        var el = el[0];
+        // get the data
+        d3.csv("force.csv", function(error, links) {
+
+
+
+            
+
+        var nodes = {};
+
+        // Compute the distinct nodes from the links.
+        links.forEach(function(link) {
+            link.source = nodes[link.source] || 
+                (nodes[link.source] = {name: link.source});
+            link.target = nodes[link.target] || 
+                (nodes[link.target] = {name: link.target});
+            link.value = +link.value;
+        });
+
+        links.forEach(function(link) {
+            console.log("link: ", link);
+        });
+
+
+
+
+        var width = 500,
+            height = 400;
+
+        //     var width = el.clientWidth;
+        // var height = el.clientHeight;
+
+        var force = d3.layout.force()
+            .nodes(d3.values(nodes))
+            .links(links)
+            .size([width, height])
+            .linkDistance(100)
+            .charge(-300)
+            .on("tick", tick)
+            .start();
+
+        var svg = d3.select(el).append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+
+
+        // build the arrow.
+        svg.append("svg:defs").selectAll("marker")
+            .data(["end"])      // Different link/path types can be defined here
+          .enter().append("svg:marker")    // This section adds in the arrows
+            .attr("id", String)
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 15)
+            .attr("refY", -1.5)
+            .attr("markerWidth", 8)
+            .attr("markerHeight", 8)
+            .attr("orient", "auto")
+          .append("svg:path")
+            .attr("d", "M0,-5L10,0L0,5");
+
+        // add the links and the arrows
+        var path = svg.append("svg:g").selectAll("path")
+            .data(force.links())
+          .enter().append("svg:path")
+        //    .attr("class", function(d) { return "link " + d.type; })
+            .attr("class", "link")
+            .attr("marker-end", "url(#end)");
+
+        // define the nodes
+        var node = svg.selectAll(".node")
+            .data(force.nodes())
+          .enter().append("g")
+            .attr("class", "node")
+            .on("click", click)
+            .call(force.drag)
+            .on("mouseover", fade(.1))
+            .on("mouseout", fade(1));
+            
+
+        // add the nodes
+        node.append("circle")
+            .attr("r", 6);
+            
+
+        // add the text 
+        node.append("text")
+            .attr("x", 12)
+            .attr("dy", "1em")
+            .text(function(d) { return d.name; });
+
+        var link = svg.selectAll("line").data(links).enter().append("line");
+
+        var linkedByIndex = {};
+        links.forEach(function(d) {
+            linkedByIndex[d.source.index + "," + d.target.index] = 1;
+        });
+
+        function fade(opacity) {
+        return function(d) {
+
+            node.style("stroke-opacity", function(o) {
+
+                console.log("THIS", this);
+                
+                thisOpacity = isConnected(d, o) ? 1 : opacity;
+                this.setAttribute('fill-opacity', thisOpacity);
+                return thisOpacity;
+            });
+
+
+
+
+
+            link.style("opacity", function(o) {
+                console.log("o:", o);
+                return o.source === d || o.target === d ? 1 : opacity;
+            });
+        };
+        }
+
+        function isConnected(a, b) {
+            return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
+        }
+
+
+
+
+
+          // Toggle children on click.
+        function click(d) {
+          // if (d.children) {
+          //   d._children = d.children;
+          //   d.children = null;
+          // } else {
+          //   d.children = d._children;
+          //   d._children = null;
+          // }
+          console.log(d);
+        }
+
+        // add the curvy lines
+        function tick() {
+            path.attr("d", function(d) {
+                var dx = d.target.x - d.source.x,
+                    dy = d.target.y - d.source.y,
+                    dr = Math.sqrt(dx * dx + dy * dy);
+                return "M" + 
+                    d.source.x + "," + 
+                    d.source.y + "A" + 
+                    dr + "," + dr + " 0 0,1 " + 
+                    d.target.x + "," + 
+                    d.target.y;
+            });
+
+            node
+                .attr("transform", function(d) { 
+                return "translate(" + d.x + "," + d.y + ")"; });
+    }
+
+});
+
+
+
+    }
+    return {
+        link: link,
+        restrict: 'E'
+    }
+});
+
+
 
 myApp.filter('orderObjectBy', function(){
  return function(input, attribute) {
@@ -617,6 +794,8 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
                     console.log("resolvedResultsArr: ", $scope.resolvedResultsArr);
 
 
+
+
                     // Re attach the score to the objects
                     // for (nextResult in values) {
 
@@ -636,6 +815,31 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
                     $scope.filterItem = "";
                     $scope.commonItems = dataMap;
+
+
+                    //////////// CSV
+
+                    var csv = "";
+
+    
+                    for (item in $scope.resolvedResultsArr) {
+                        var nextItem = $scope.resolvedResultsArr[item];
+                        console.log("nextItem", nextItem.symbol);
+
+                        var commonItems = nextItem.commonitems;
+                        for (key in commonItems) {
+                            if (key != nextItem.objectId) {
+                                var fromMap = dataMap[key];
+                                console.log("looking for ", key);
+                                console.log("fromMap", fromMap);
+                                csv += fromMap.symbol + "," + nextItem.symbol + ",0\n";
+                            }
+                        }
+                        console.log("---commonitems", commonItems);
+
+                    }
+
+                    console.log(csv);
 
                     //$scope.commonItems = values
 

@@ -78,13 +78,64 @@ circle {
     fill: steelblue;
 }
 
-donut-chart {
-    background-color: blue;
+network-chart {
     width: 100%;
     height: 100%;
     display: block;
 }
 
+path.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1px;
+}
+
+circle {
+  /*fill: #ccc;*/
+  fill: #428BCA;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+text {
+  fill: #000;
+  font: 14px sans-serif;
+  pointer-events: none;
+
+}
+
 .selectMe {
     color: orange;
 }
+
+.geneTile {
+    width: 75px;
+    height: 75px;
+    background-color: #1BA1E2;
+    color: white;
+    font-size: 14px;
+    float: left;
+    padding: 5px;
+    margin: 2px;
+    text-align: center;
+    font-weight: bold;
+    position: relative;
+}
+
+.geneTileContents {
+    position:absolute;
+    top:50%;
+    height:2em;
+    margin-top:-1em
+}
+
+.geneTile .title {
+    font-weight: bold;
+}
+
+.geneTile .subtext {
+    font-weight: normal;
+    font-size: 9px;
+    color: #B7DEF1;
+}
+
