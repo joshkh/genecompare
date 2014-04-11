@@ -131,10 +131,12 @@ myApp.directive('networkChart', function() {
             .attr("width", width)
             .attr("height", height);
 
+        
+
 
 
         // build the arrow.
-        svg.append("svg:defs").selectAll("marker")
+        var marker = svg.append("svg:defs").selectAll("marker")
             .data(["end"])      // Different link/path types can be defined here
           .enter().append("svg:marker")    // This section adds in the arrows
             .attr("id", String)
@@ -144,14 +146,21 @@ myApp.directive('networkChart', function() {
             .attr("markerWidth", 8)
             .attr("markerHeight", 8)
             .attr("orient", "auto")
+            .attr("class", "link")
           .append("svg:path")
             .attr("d", "M0,-5L10,0L0,5");
 
-        // add the links and the arrows
-        var path = svg.append("svg:g").selectAll("path")
+        // // add the links and the arrows
+        // var path = svg.append("svg:g").selectAll("path")
+        //     .data(force.links())
+        //   .enter().append("svg:path")
+        //     .attr("class", "link")
+        //     .attr("marker-end", "url(#end)");
+
+            // add the links and the arrows
+        var link = svg.append("svg:g").selectAll("path")
             .data(force.links())
           .enter().append("svg:path")
-        //    .attr("class", function(d) { return "link " + d.type; })
             .attr("class", "link")
             .attr("marker-end", "url(#end)");
 
@@ -162,8 +171,8 @@ myApp.directive('networkChart', function() {
             .attr("class", "node")
             .on("click", click)
             .call(force.drag)
-            .on("mouseover", fade(.1))
-            .on("mouseout", fade(1));
+            .on("mouseover", fade(.1));
+            //.on("mouseout", fade(1));
             
 
         // add the nodes
@@ -177,12 +186,14 @@ myApp.directive('networkChart', function() {
             .attr("dy", "1em")
             .text(function(d) { return d.name; });
 
-        var link = svg.selectAll("line").data(links).enter().append("line");
+        
 
         var linkedByIndex = {};
         links.forEach(function(d) {
             linkedByIndex[d.source.index + "," + d.target.index] = 1;
         });
+
+
 
         function fade(opacity) {
         return function(d) {
@@ -192,18 +203,22 @@ myApp.directive('networkChart', function() {
                 console.log("THIS", this);
                 
                 thisOpacity = isConnected(d, o) ? 1 : opacity;
+
                 this.setAttribute('fill-opacity', thisOpacity);
                 return thisOpacity;
             });
 
+            
 
 
+            link.style("stroke-opacity", function(o) {
+                console.log("next link:", o);
+                o.setAttribute('fill-opacity', thisOpacity);
 
-
-            link.style("opacity", function(o) {
-                console.log("o:", o);
                 return o.source === d || o.target === d ? 1 : opacity;
             });
+
+
         };
         }
 
@@ -229,7 +244,7 @@ myApp.directive('networkChart', function() {
 
         // add the curvy lines
         function tick() {
-            path.attr("d", function(d) {
+            link.attr("d", function(d) {
                 var dx = d.target.x - d.source.x,
                     dy = d.target.y - d.source.y,
                     dr = Math.sqrt(dx * dx + dy * dy);

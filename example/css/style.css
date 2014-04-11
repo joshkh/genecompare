@@ -78,6 +78,11 @@ circle {
     fill: steelblue;
 }
 
+path {
+  stroke: green;
+  fill: red;
+}
+
 network-chart {
     width: 100%;
     height: 100%;
