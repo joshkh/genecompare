@@ -5,7 +5,6 @@
     <title>GeneCompare</title>
     <!-- <link rel="stylesheet" type="text/css" href="css/style.css"> -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
-
     
 
 
@@ -72,11 +71,11 @@
                             </tbody>
                         </table> 
  -->
-                        <div ng-repeat="item in searchTerms" class="geneTile source">
+                        <div ng-repeat="item in searchTerms" class="geneTile">
 
                             <div class="geneTileContents">
                                 <div class="title">{{item.symbol}}</div>
-                                <!-- <div class="subtext">{{item.primaryIdentifier}}</div> -->
+                                <div class="subtext">{{item.primaryIdentifier}}</div>
 
                             </div>
                         </div>
@@ -91,21 +90,28 @@
                 <div class="panel-heading">Similar Genes</div>
                 <div class="panel-body" ng-show="!resolvedResultsArr">(Enter a search term for results.)</div>
                 <div class="panel-body" ng-show="resolvedResultsArr">
+                        <table class="table table-striped">
+                            <thead>
+                                <th>Symbol</th>
+                                <!-- <th>Name</th> -->
+                                <th>Score</th>
+                                <!-- <th>ObjectID</th> -->
+                            </thead>
+                            <tbody>
+                                <tr class="highlight" ng-repeat="item in resolvedResultsArr | orderBy:'score':true">
+                                    <td><a href="#" ng-click="setCommonGene(item.objectId)">{{item.symbol}}</a></td><!-- <td>{{item.primaryIdentifier}}</td> --><td>{{item.score}}</td><!-- <td>{{item.objectId}}</td> -->
+                                </tr>
+                            </tbody>
+                        </table>
 
-
-                        <div ng-repeat="item in resolvedResultsArr | orderBy:'score':true" class="geneTile target">
+                        <div ng-repeat="item in searchTerms" class="geneTile">
 
                             <div class="geneTileContents">
-
-                                <div class="trueContents">
                                 <div class="title">{{item.symbol}}</div>
-                                <div class="subtext">{{item.score}}</div>
-                                </div>
+                                <div class="subtext">{{item.primaryIdentifier}}</div>
 
                             </div>
                         </div>
-
-
 
                 </div>
             </div>

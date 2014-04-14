@@ -105,9 +105,7 @@ myApp.directive('networkChart', function() {
             link.value = +link.value;
         });
 
-        links.forEach(function(link) {
-            console.log("link: ", link);
-        });
+
 
 
 
@@ -141,7 +139,7 @@ myApp.directive('networkChart', function() {
           .enter().append("svg:marker")    // This section adds in the arrows
             .attr("id", String)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 15)
+            .attr("refX", 18)
             .attr("refY", -1.5)
             .attr("markerWidth", 8)
             .attr("markerHeight", 8)
@@ -171,13 +169,14 @@ myApp.directive('networkChart', function() {
             .attr("class", "node")
             .on("click", click)
             .call(force.drag)
-            .on("mouseover", fade(.1));
-            //.on("mouseout", fade(1));
+            .on("mouseover", fade(.15))
+            .on("mouseout", fade(1));
             
 
         // add the nodes
         node.append("circle")
-            .attr("r", 6);
+            .attr("r", 6)
+            .attr("class", isParent);
             
 
         // add the text 
@@ -193,30 +192,59 @@ myApp.directive('networkChart', function() {
             linkedByIndex[d.source.index + "," + d.target.index] = 1;
         });
 
+        links.forEach(function(link) {
+            console.log("link: ", link);
+            var source = link.source;
+            console.log("-- source:", source);
+        });
+
+        function click(d) {
+            console.log("clicked: ", d);
+        }
+
+        function isParent(d) {
+            sourceNames = [];
+            console.log("isParent: ", d.name);
+            // build an array of source genes
+            links.forEach(function(o) {
+                sourceNames.push(o.source.name);
+            });
+
+            if (_.contains(sourceNames, d.name)) {
+                console.log("parent");
+                return "parent";
+            } else {
+                console.log("child");
+                return "child";
+            }
+
+        }
+
+
 
 
         function fade(opacity) {
         return function(d) {
 
+
             node.style("stroke-opacity", function(o) {
-
-                console.log("THIS", this);
-                
                 thisOpacity = isConnected(d, o) ? 1 : opacity;
-
                 this.setAttribute('fill-opacity', thisOpacity);
                 return thisOpacity;
             });
 
-            
+            node.style("stroke-opacity", function(o) {
+                thisOpacity = isConnected(d, o) ? 1 : opacity;
+                this.setAttribute('fill-opacity', thisOpacity);
+                return thisOpacity;
+            });
 
 
-            link.style("stroke-opacity", function(o) {
-                console.log("next link:", o);
-                o.setAttribute('fill-opacity', thisOpacity);
-
+            link.style("opacity", function(o) {
+                console.log("inside link style: ", o);
                 return o.source === d || o.target === d ? 1 : opacity;
             });
+
 
 
         };
@@ -230,17 +258,19 @@ myApp.directive('networkChart', function() {
 
 
 
+
+
           // Toggle children on click.
-        function click(d) {
-          // if (d.children) {
-          //   d._children = d.children;
-          //   d.children = null;
-          // } else {
-          //   d.children = d._children;
-          //   d._children = null;
-          // }
-          console.log(d);
-        }
+        // function click(d) {
+        //   // if (d.children) {
+        //   //   d._children = d.children;
+        //   //   d.children = null;
+        //   // } else {
+        //   //   d.children = d._children;
+        //   //   d._children = null;
+        //   // }
+        //   console.log(d);
+        // }
 
         // add the curvy lines
         function tick() {
@@ -839,14 +869,14 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
     
                     for (item in $scope.resolvedResultsArr) {
                         var nextItem = $scope.resolvedResultsArr[item];
-                        console.log("nextItem", nextItem.symbol);
+                        // console.log("nextItem", nextItem.symbol);
 
                         var commonItems = nextItem.commonitems;
                         for (key in commonItems) {
                             if (key != nextItem.objectId) {
                                 var fromMap = dataMap[key];
-                                console.log("looking for ", key);
-                                console.log("fromMap", fromMap);
+                                // console.log("looking for ", key);
+                                // console.log("fromMap", fromMap);
                                 csv += fromMap.symbol + "," + nextItem.symbol + ",0\n";
                             }
                         }
