@@ -220,6 +220,8 @@ myApp.directive('networkChart', function() {
 
         }
 
+        
+
 
 
 
@@ -392,12 +394,91 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     };
 
+    $scope.warn = function(id) {
+            var value = $scope.dataMap[id];
+            return value.symbol;
+    };
+
+    $scope.getClass = function(id) {
+            // // var value = $scope.dataMap[id];
+            // if (id == $scope.selectedSourceGene.symbol) {
+            //     return "selected";
+            
+            // } else {
+            //     return null;
+            // }
+    };
+
+    $scope.isSelectedSource = function(id) {
+            // var value = $scope.dataMap[id];
+            console.log("isSelectedSource called with ", id);
+
+
+            if (id == $scope.selectedSourceGene.objectId) {
+                return "selectedsources";
+            } else {
+                return "unselectedsources";
+            }
+
+
+    };
+
+    $scope.isCommonTarget = function(id) {
+            // var value = $scope.dataMap[id];
+            console.log("isCommonTarget called with ", id);
+            var me = $scope.resolvedResultsArr[id];
+
+            var myResolution = _.findWhere($scope.resolvedResultsArr, {objectId: id});
+            var myCommonItems = myResolution.commonitems;
+
+            if (myCommonItems.hasOwnProperty($scope.selectedSourceGene.objectId)) {
+                return "selectedtargets";
+            } else {
+                return "unselectedtargets"
+            }
+
+    };
+
+    $scope.setSelectedSourceGene = function(id) {
+            $scope.selectedSourceGene = $scope.dataMap[id];
+            console.log("selectedSourceGene",  $scope.selectedSourceGene);
+    };
+
     $scope.setCommonGene = function(item) {
 
-        $scope.common = item;
+        console.log("resolvedResultArra", $scope.resolvedResultsArr);
+
+        $scope.common = $scope.dataMap[item];
+
         var split = _.findWhere($scope.resolvedResultsArr, {objectId: item});
         $scope.commonItems = split.commonitems;
         console.log("splitcommonitems", $scope.commonItems);
+
+        // var ids = [];
+
+        var idsInSelf = [];
+        for (var nextItem in split.commonitems[item]) {
+            console.log("NEXT ITEM", nextItem);
+        }
+
+        // for (nextItem in split.commonitems) {
+        //     if (item != nextItem)  {
+        //         console.log("FOUND ME");
+        //         var array1 = split.commonitems[item];
+        //         var array2 = split.commonitems[nextItem];
+        //         console.log("arary1" + item, array1);
+        //         console.log("arary2" + nextItem, array2);
+        //         var inter = _.intersection(array1, array2);
+        //         console.log("intersection, ", inter);
+        //     }
+        // }
+
+        // console.log(values);
+
+        var intersection = _.intersection(values);
+        console.log("intersection", intersection);
+
+
     };
 
     $scope.fetchMap = function(id) {
@@ -405,6 +486,7 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
         return $scope.dataMap[id];
 
     };
+
 
 
 
@@ -526,6 +608,7 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     $scope.talk = function(test) {
         $scope.filterItem = test;
+        console.log("filter set to ", $scope.filterItem);
     };
 
     $scope.clearFilter = function() {

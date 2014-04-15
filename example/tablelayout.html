@@ -74,7 +74,7 @@
                         <div ng-repeat="item in searchTerms" class="geneTile">
 
                             <div class="geneTileContents">
-                                <div class="title">{{item.symbol}}</div>
+                                <div class="title"><a href="#" ng-click="setCommonGene(item.objectId)">{{item.symbol}}</a></div>
                                 <div class="subtext">{{item.primaryIdentifier}}</div>
 
                             </div>

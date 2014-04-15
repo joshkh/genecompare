@@ -30,6 +30,9 @@
     </script>
 
 
+
+
+
 <div>
 
 
@@ -54,30 +57,17 @@
         <div class="col-xs-3">
 
             <!-- Results Panel -->
-            <div class="panel panel-primary">
-                <div class="panel-heading">Search Results</div>
+            <div class="panel panel-default">
+                <div class="panel-heading">Search Results ({{selectedSourceGene.symbol}})</div>
                 <div class="panel-body" ng-show="!resolvedResultsArr">(Enter a search term for results.)</div>
                 <div class="panel-body" ng-show="resolvedResultsArr">
 
-<!--                         <table class="table table-striped">
-                            <thead>
-                                <th>Symbol</th> -->
-                                <!-- <th>Name</th>
-                                <!-- <th>ObjectID</th> -->
-                           <!--  </thead>
-                            <tbody>
-                                <tr class="highlight" ng-repeat="item in searchTerms | orderBy:'symbol'">
-                                    <td><a href="#">{{item.symbol}}</a></td> --><!-- <td>{{item.primaryIdentifier}}</td> --><!-- <td>{{item.objectId}}</td> -->
-<!--                                 </tr>
-                            </tbody>
-                        </table> 
- -->
-                        <div ng-repeat="item in searchTerms" class="geneTile source">
-
-                            <div class="geneTileContents">
-                                <div class="title">{{item.symbol}}</div>
-                                <!-- <div class="subtext">{{item.primaryIdentifier}}</div> -->
-
+                        <div ng-repeat="item in searchTerms">
+                            <div class="geneTile" ng-mouseover="setSelectedSourceGene(item.objectId)" ng-class="isSelectedSource(item.objectId)">
+                                <div class="geneTileContents">
+                                    <div class="title">{{item.symbol}}</div>
+                                    <div class="subtext">{{item.objectId}}</div>
+                                </div>
                             </div>
                         </div>
 
@@ -86,22 +76,20 @@
 
                 <!-- <div class="col-xs-3"> -->
 
-            <!-- Results Panel -->
-            <div class="panel panel-primary">
+            <!-- Similar Genes Panel -->
+            <div class="panel panel-default">
                 <div class="panel-heading">Similar Genes</div>
                 <div class="panel-body" ng-show="!resolvedResultsArr">(Enter a search term for results.)</div>
                 <div class="panel-body" ng-show="resolvedResultsArr">
 
 
-                        <div ng-repeat="item in resolvedResultsArr | orderBy:'score':true" class="geneTile target">
-
-                            <div class="geneTileContents">
-
-                                <div class="trueContents">
-                                <div class="title">{{item.symbol}}</div>
-                                <div class="subtext">{{item.score}}</div>
+                        <div ng-repeat="item in resolvedResultsArr | orderBy:'score':true">
+                            <div class="geneTile" ng-class="isCommonTarget(item.objectId)" ng-mouseover="setCommonGene(item.objectId)">
+                                <div class="geneTileContents">
+                                    <div class="title">{{item.symbol}}</div>
+                                    <div class="subtext">{{item.score}}</div>
+                                    <div class="subtext">{{item.objectId}}</div>
                                 </div>
-
                             </div>
                         </div>
 
@@ -129,8 +117,8 @@
 
 
             <!-- Results Panel -->
-            <div class="panel panel-primary">
-                <div class="panel-heading">Common Items for <span class="stressed">{{common}}</span> ({{selectedCommonGene.primaryIdentifier}})</div>
+            <div class="panel panel-default">
+                <div class="panel-heading">Common Items for <span class="stressed">{{common.symbol}}</span> ({{common.primaryIdentifier}})</div>
                 
                 <div class="panel-body" ng-show="!commonItems">(Enter a search term for results.)</div>
                 <div class="panel-body" ng-show="commonItems">
@@ -143,11 +131,13 @@
                       <li ng-repeat="(key, value) in countBy" ng-click="talk(key)" ><a href="#tab{{$index + 1}}" data-toggle="tab">{{key}} ({{value}})</a></li>
                     </ul>
 
-                    <input type="text" ng-model="testing">
+                    <!-- <input type="text" ng-model="testing"> -->
 
-                    <div ng-repeat="(key, value) in commonItems">
+                    <!-- Search: <input ng-model="someText"> -->
 
-                        <h3>{{key}}</h3>
+                    <div ng-show="filterItem && common" ng-repeat="(key, value) in commonItems">
+
+                        <h3>{{warn(key)}}</h3>
 
                         <table class="table table-striped">
                             <thead>
@@ -155,7 +145,7 @@
                                 <th>item</th>
                             </thead>
                             <tbody>
-                                <tr ng-repeat="item in value" >
+                                <tr ng-repeat="item in value | filter:filterItem " >
                                     <td><a href="#">{{item.name}}</a></td><td><a href="#">{{item.class}}</a></td>
                                     <td>
 <!--                                     <ul>
@@ -185,7 +175,7 @@
 
 
             <!-- Results Panel -->
-<!--             <div class="panel panel-primary">
+<!--             <div class="panel panel-default">
                 <div class="panel-heading" ng-click="convertObjs()">InterMine Objects</div>
                 <div class="panel-body" ng-show="!commonItems">(Enter a search term for results.)</div>
                 <div class="panel-body">
