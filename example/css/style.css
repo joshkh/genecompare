@@ -168,6 +168,20 @@ text {
     border: 3px solid white;
     vertical-align: middle;
 
+
+
+        -webkit-transition: background 1s;
+       -moz-transition: background 1s;
+        -ms-transition: background 1s;
+         -o-transition: background 1s;
+            transition: background 1s;
+
+                -webkit-transition: border-color 1s;
+       -moz-transition: border-color 1s;
+        -ms-transition: border-color 1s;
+         -o-transition: border-color 1s;
+            transition: border-color 1s;
+
 }
 
 
@@ -187,23 +201,30 @@ text {
 }*/
 
 .selectedtargets {
-    background-color: #60a917;
+    background: #60a917;
 }
 
 .unselectedtargets {
-    background-color: #A4A97B;
+    background: #A4A97B;
+}
+
+
+
+.sticky {
+    border: 1px solid #1BA1E2;
 }
 
 .selectedsources {
-    background-color: #1BA1E2;
+    background: #1BA1E2;
+
 }
 
 .unselectedsources {
-    background-color: #A3D0E2;
+    background: #A3D0E2;
 }
 
 .geneTile.source {
-    background-color: #1BA1E2;
+    background: #1BA1E2;
 }
 
 .geneTile.selectedsources.clicked {
@@ -222,7 +243,7 @@ text {
 
 .geneTileContents {
     font-weight: 500;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .subtext {

@@ -394,9 +394,29 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     };
 
+    $scope.setStickySourceGene = function(id) {
+        if ($scope.stickySourceGene == id) {
+            $scope.stickySourceGene = null;
+        } else {
+            $scope.stickySourceGene = id;
+        }
+    };
+
+    $scope.isStickySourceGene = function(id) {
+        if ($scope.stickySourceGene == id) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
     $scope.warn = function(id) {
             var value = $scope.dataMap[id];
             return value.symbol;
+    };
+
+    $scope.hello = function(message) {
+        alert("message: " + message);
     };
 
     $scope.getClass = function(id) {
@@ -415,9 +435,9 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
 
             if (id == $scope.selectedSourceGene.objectId) {
-                return "selectedsources";
+                return true;
             } else {
-                return "unselectedsources";
+                return false;
             }
 
 

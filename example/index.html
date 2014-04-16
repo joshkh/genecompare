@@ -63,7 +63,12 @@
                 <div class="panel-body" ng-show="resolvedResultsArr">
 
                         <div ng-repeat="item in searchTerms">
-                            <div class="geneTile" ng-mouseover="setSelectedSourceGene(item.objectId)" ng-class="isSelectedSource(item.objectId)">
+                            <div class="geneTile"
+                            ng-click="setStickySourceGene(item.objectId)"
+                            ng-mouseover="setSelectedSourceGene(item.objectId)"
+                            ng-class="{sticky: isStickySourceGene(item.objectId),
+                            selectedsources: isSelectedSource(item.objectId),
+                            unselectedsources: !isSelectedSource(item.objectId)}">
                                 <div class="geneTileContents">
                                     <div class="title">{{item.symbol}}</div>
                                     <div class="subtext">{{item.objectId}}</div>
