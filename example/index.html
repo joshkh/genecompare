@@ -46,6 +46,7 @@
             <div class="input-group-btn">
                 <button class="btn btn-default" type="submit">Search <span class="glyphicon glyphicon-search"></span></button>
             </div>
+
         </div>
     </form>
 
@@ -58,14 +59,15 @@
 
             <!-- Results Panel -->
             <div class="panel panel-default">
-                <div class="panel-heading">Search Results ({{selectedSourceGene.symbol}})</div>
+                <div class="panel-heading">Search Results</div>
                 <div class="panel-body" ng-show="!resolvedResultsArr">(Enter a search term for results.)</div>
                 <div class="panel-body" ng-show="resolvedResultsArr">
 
                         <div ng-repeat="item in searchTerms">
                             <div class="geneTile"
-                            ng-click="setStickySourceGene(item.objectId)"
+                            ng-click="setStickySourceGene(item.objectId); clearFilter()"
                             ng-mouseover="setSelectedSourceGene(item.objectId)"
+                            ng-mouseleave="setSelectedSourceGene()"
                             ng-class="{sticky: isStickySourceGene(item.objectId),
                             selectedsources: isSelectedSource(item.objectId),
                             unselectedsources: !isSelectedSource(item.objectId)}">
@@ -89,7 +91,12 @@
 
 
                         <div ng-repeat="item in resolvedResultsArr | orderBy:'score':true">
-                            <div class="geneTile" ng-class="isCommonTarget(item.objectId)" ng-mouseover="setCommonGene(item.objectId)">
+                            <div class="geneTile"
+                            ng-click="setStickyTargetGene(item.objectId); clearFilter()"
+                            ng-class="{sticky: isStickyTargetGene(item.objectId),
+                            selectedtargets: isCommonTarget(item.objectId),
+                            unselectedtargets: !isCommonTarget(item.objectId)}">
+                            
                                 <div class="geneTileContents">
                                     <div class="title">{{item.symbol}}</div>
                                     <div class="subtext">{{item.score}}</div>
@@ -123,13 +130,22 @@
 
             <!-- Results Panel -->
             <div class="panel panel-default">
-                <div class="panel-heading">Common Items for <span class="stressed">{{common.symbol}}</span> ({{common.primaryIdentifier}})</div>
+                <div class="panel-heading">Common Gene Network</div>
                 
-                <div class="panel-body" ng-show="!commonItems">(Enter a search term for results.)</div>
-                <div class="panel-body" ng-show="commonItems">
+                <div class="panel-body" ng-show="resolvedResultsArr">
 
-                <network-chart></network-chart>
+                    <network-chart></network-chart>
 
+                </div>
+            </div>
+            <div class="panel panel-default">
+            <div ng-show="commonItems" class="panel-heading">Shared items between source gene <span class="stressed"><a href="http://www.flymine.org/release-39.0/report.do?id={{stickySourceGeneFull.objectId}}" target="_blank">{{stickySourceGeneFull.symbol}}</a></span> and common gene <span class="stressed"><a href="http://www.flymine.org/release-39.0/report.do?id={{stickyTargetGeneFull.objectId}}" target="_blank">{{stickyTargetGeneFull.symbol}}</a></span></div>
+
+            <div ng-show="!commonItems && !stickyTargetGeneFull || !stickySourceGeneFull" class="panel-heading">Please select a source gene and a target gene to see common items.</div>
+
+            <div ng-show="!commonItems && stickyTargetGeneFull && stickySourceGeneFull" class="panel-heading">There are no shared items between source gene <span class="stressed">{{stickySourceGeneFull.symbol}}</span> and common gene <span class="stressed">{{stickyTargetGeneFull.symbol}}</span></div>
+
+                    <div ng-show="commonItems">
 
                     <ul class="nav nav-pills">
                       <li class="active" ng-click="clearFilter()" ng-class="{active: $index == 0}"><a href="#tab{{$index + 1}}" data-toggle="tab">All ({{commonItems.length}})</a></li>
@@ -140,18 +156,20 @@
 
                     <!-- Search: <input ng-model="someText"> -->
 
-                    <div ng-show="filterItem && common" ng-repeat="(key, value) in commonItems">
+                    <!-- <div ng-show="filterItem && common" ng-repeat="(key, value) in commonItems"> -->
+                <div >
+                        <!-- <h3>{{warn(key)}}</h3> -->
 
-                        <h3>{{warn(key)}}</h3>
 
                         <table class="table table-striped">
                             <thead>
                                 <th>Type</th>
-                                <th>item</th>
+                                <th>Name</th>
                             </thead>
                             <tbody>
-                                <tr ng-repeat="item in value | filter:filterItem " >
-                                    <td><a href="#">{{item.name}}</a></td><td><a href="#">{{item.class}}</a></td>
+                                <!-- <tr ng-repeat="item in value | filter:filterItem " > -->
+                                <tr ng-repeat="(key, value) in commonItems | filter:filterItem">
+                                    <td><a href="http://www.flymine.org/release-39.0/report.do?id={{value.objectId}}" target="_blank">{{value.class}}</a></td><td><a href="http://www.flymine.org/release-39.0/report.do?id={{value.objectId}}">{{value.name}}</a></td>
                                     <td>
 <!--                                     <ul>
                                         <li ng-repeat="value in item">{{item}}</li>
@@ -162,8 +180,9 @@
                         </table>
 
                     </div>
+                    </div>
 
-                </div>
+                </div> <!-- end panel -->
             </div>
 
         </div>
@@ -214,6 +233,7 @@
     </div>
 
 </div>
+
 
 
 

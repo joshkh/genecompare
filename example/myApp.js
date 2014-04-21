@@ -1,22 +1,7 @@
 angular.module('myApp.services', []).
     factory('Mine', function ($q) {
         return new intermine.Service({root: 'www.flymine.org/query'});        
-    }).
-    service('Activities', function($http, $q) {
-        this.get = function(from, to){
-            var deferred = $q.defer();
-            var url = 'user/activities?from='+from+'&to='+to;
-            $http.get(url).success(function(data, status) {
-                // Some extra manipulation on data if you want...
-                deferred.resolve(data);
-            }).error(function(data, status) {
-                deferred.reject(data);
-            });
-
-            return deferred.promise;
-        }
-    }
-);
+    });
 
 
 
@@ -84,6 +69,9 @@ myApp.directive('donutChart', function() {
 
 
 myApp.directive('networkChart', function() {
+
+
+
     function link(scope, el) {
 
         var el = el[0];
@@ -110,7 +98,7 @@ myApp.directive('networkChart', function() {
 
 
 
-        var width = 500,
+        var width = 400,
             height = 400;
 
         //     var width = el.clientWidth;
@@ -120,8 +108,10 @@ myApp.directive('networkChart', function() {
             .nodes(d3.values(nodes))
             .links(links)
             .size([width, height])
-            .linkDistance(100)
+            .linkDistance(90)
             .charge(-300)
+            .gravity(0.15)
+            .friction(0.9)
             .on("tick", tick)
             .start();
 
@@ -193,28 +183,28 @@ myApp.directive('networkChart', function() {
         });
 
         links.forEach(function(link) {
-            console.log("link: ", link);
+            //console.log("link: ", link);
             var source = link.source;
-            console.log("-- source:", source);
+            //console.log("-- source:", source);
         });
 
         function click(d) {
-            console.log("clicked: ", d);
+            //console.log("clicked: ", d);
         }
 
         function isParent(d) {
             sourceNames = [];
-            console.log("isParent: ", d.name);
+            //console.log("isParent: ", d.name);
             // build an array of source genes
             links.forEach(function(o) {
                 sourceNames.push(o.source.name);
             });
 
             if (_.contains(sourceNames, d.name)) {
-                console.log("parent");
+                //console.log("parent");
                 return "parent";
             } else {
-                console.log("child");
+                //console.log("child");
                 return "child";
             }
 
@@ -243,7 +233,7 @@ myApp.directive('networkChart', function() {
 
 
             link.style("opacity", function(o) {
-                console.log("inside link style: ", o);
+                // console.log("inside link style: ", o);
                 return o.source === d || o.target === d ? 1 : opacity;
             });
 
@@ -397,13 +387,42 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
     $scope.setStickySourceGene = function(id) {
         if ($scope.stickySourceGene == id) {
             $scope.stickySourceGene = null;
+            $scope.stickySourceGeneFull = null;
+            $scope.commonItems = null;
         } else {
             $scope.stickySourceGene = id;
+            $scope.stickySourceGeneFull = $scope.dataMap[id];
         }
+
+        
+
+        $scope.setCommonGene($scope.stickyTargetGene);
+        
     };
 
     $scope.isStickySourceGene = function(id) {
         if ($scope.stickySourceGene == id) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    $scope.setStickyTargetGene = function(id) {
+        if ($scope.stickyTargetGene == id) {
+            $scope.stickyTargetGene = null;
+            $scope.stickyTargetGeneFull = null;
+            $scope.commonItems = null;
+        } else {
+            $scope.stickyTargetGene = id;
+            $scope.stickyTargetGeneFull = $scope.dataMap[id];
+        }
+        
+        $scope.setCommonGene(id);
+    };
+
+    $scope.isStickyTargetGene = function(id) {
+        if ($scope.stickyTargetGene == id) {
             return true;
         } else {
             return false;
@@ -431,7 +450,11 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     $scope.isSelectedSource = function(id) {
             // var value = $scope.dataMap[id];
-            console.log("isSelectedSource called with ", id);
+            //console.log("isSelectedSource called with ", id);
+
+            if ($scope.selectedSourceGene == null) {
+                return true;
+            }
 
 
             if (id == $scope.selectedSourceGene.objectId) {
@@ -443,60 +466,94 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
 
     };
 
+    $scope.isSelectedTarget = function(id) {
+            // var value = $scope.dataMap[id];
+            //console.log("isSelectedTarget called with ", id);
+            //console.log("comparing to: ", $scope.selectedTargetGene);
+
+
+            // if (id == $scope.selectedTargetGene.objectId) {
+            //     return true;
+            // } else {
+            //     return false;
+            // }
+            return true;
+
+    };
+
+
+
     $scope.isCommonTarget = function(id) {
             // var value = $scope.dataMap[id];
-            console.log("isCommonTarget called with ", id);
+            //console.log("isCommonTarget called with ", id);
+
+            if ($scope.selectedSourceGene == null) {
+                return true;
+            }
             var me = $scope.resolvedResultsArr[id];
 
             var myResolution = _.findWhere($scope.resolvedResultsArr, {objectId: id});
             var myCommonItems = myResolution.commonitems;
-
+            //console.log("source g: ", $scope.selectedSourceGene);
             if (myCommonItems.hasOwnProperty($scope.selectedSourceGene.objectId)) {
-                return "selectedtargets";
+                // return "selectedtargets";
+                return true;
             } else {
-                return "unselectedtargets"
+                // return "unselectedtargets"
+                return false;
             }
 
     };
 
     $scope.setSelectedSourceGene = function(id) {
+        if (id != null) {
             $scope.selectedSourceGene = $scope.dataMap[id];
-            console.log("selectedSourceGene",  $scope.selectedSourceGene);
+        } else {
+            //alert("null");
+            $scope.selectedSourceGene = null;
+            //console.log("selectedSourceGene",  $scope.selectedSourceGene);
+        }
     };
+
+    $scope.setSelectedTargetGene = function(id) {
+            $scope.selectedTargetGene = $scope.dataMap[id];
+            //console.log("setSelectedTargetGene",  $scope.selectedSourceGene);
+    };
+
+    $scope.explain = function(id) {
+        alert(dataMap[id]);
+        return dataMap[id];
+
+    }
 
     $scope.setCommonGene = function(item) {
 
-        console.log("resolvedResultArra", $scope.resolvedResultsArr);
+        //alert("CALLED");
+
+        if ($scope.stickySourceGene == null || $scope.stickyTargetGene == null) {
+            //alert("NULLED");
+            $scope.commonItems = null;
+            return;
+        }
+
 
         $scope.common = $scope.dataMap[item];
 
         var split = _.findWhere($scope.resolvedResultsArr, {objectId: item});
         $scope.commonItems = split.commonitems;
-        console.log("splitcommonitems", $scope.commonItems);
+
 
         // var ids = [];
 
         var idsInSelf = [];
-        for (var nextItem in split.commonitems[item]) {
-            console.log("NEXT ITEM", nextItem);
-        }
 
-        // for (nextItem in split.commonitems) {
-        //     if (item != nextItem)  {
-        //         console.log("FOUND ME");
-        //         var array1 = split.commonitems[item];
-        //         var array2 = split.commonitems[nextItem];
-        //         console.log("arary1" + item, array1);
-        //         console.log("arary2" + nextItem, array2);
-        //         var inter = _.intersection(array1, array2);
-        //         console.log("intersection, ", inter);
-        //     }
-        // }
+        var originalvalue = $scope.commonItems[$scope.stickySourceGene];
+        $scope.commonItems = originalvalue;
 
-        // console.log(values);
 
-        var intersection = _.intersection(values);
-        console.log("intersection", intersection);
+        $scope.countBy = _.countBy($scope.commonItems, function(item) {
+            return item.class;
+        });
 
 
     };
@@ -711,7 +768,8 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
             }
         }
         $scope.finalResults = masterArray;
-        $scope.commonItems = masterArray;
+        $scope.commonItems = null;
+        // $scope.commonItems = masterArray;
     };
         
 
@@ -960,9 +1018,11 @@ myApp.controller('controller', ['$scope', '$http', function ($scope, $http) {
                         return item.class;
                     });
 
+                    delete $scope.countBy["Gene"];
+
 
                     $scope.filterItem = "";
-                    $scope.commonItems = dataMap;
+                    // $scope.commonItems = dataMap;
 
 
                     //////////// CSV
